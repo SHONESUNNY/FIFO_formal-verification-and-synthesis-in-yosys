@@ -1,0 +1,10 @@
+read_verilog -sv fifo.sv
+hierarchy -top fifo
+proc
+memory
+opt
+flatten
+techmap
+opt
+
+show -format dot -prefix fifo_netlist
