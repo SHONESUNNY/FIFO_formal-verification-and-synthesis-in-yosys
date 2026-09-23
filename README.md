@@ -13,9 +13,6 @@ This repository contains a SystemVerilog FIFO and a verification/synthesis flow 
 - [7. Read/Write Verification](#7-readwrite-verification)
 - [8. Assumptions and State Space](#8-assumptions-and-state-space)
 - [9. Synthesis with Yosys](#9-synthesis-with-yosys)
-- [10. Generic Netlist vs FPGA Implementation](#10-generic-netlist-vs-fpga-implementation)
-- [11. RV32I Memory and BRAM](#11-rv32i-memory-and-bram)
-- [12. Recommended Workflow](#12-recommended-workflow)
 
 ---
 
@@ -310,33 +307,6 @@ engine_0/trace.yw
 engine_0/trace.smtc
 ```
 
-## GTKWave
-
-Open the VCD with:
-
-```bash
-gtkwave fifo/engine_0/trace.vcd
-```
-
-Useful FIFO signals:
-
-```text
-clk
-rst_n
-wr_en
-rd_en
-din
-dout
-full
-empty
-count
-wr_ptr
-rd_ptr
-write_accepted
-read_accepted
-```
-
-GTKWave displays the signal values that form the counterexample. The SBY log separately identifies which assertion failed.
 
 ## Generated replay testbench
 
@@ -571,21 +541,9 @@ Yosys can optimize the generic representation, but that does not make it a final
 
 ---
 
-# 10. Generic Netlist vs FPGA Implementation
-
-There are two different synthesis targets.
-
-## Generic Yosys netlist
-
-```text
-FIFO RTL
-   |
-   v
-Yosys
-   |
-   v
-generic synthesized netlist
 ```
+#  FIFO SYNTHESISED 
+![FIFO Netlist](synthesis/fifo_netlist.png)
 
 This is useful for understanding the logic generated from the RTL.
 
@@ -605,85 +563,7 @@ placement and routing
    |
    v
 bitstream
-```
 
-For FPGA designs, technology-specific synthesis can map memories into FPGA resources such as block RAM.
-
-If Yosys reports:
-
-```text
-Replacing memory \mem with list of registers
-```
-
-then the memory has been lowered into individual register-based logic in that synthesis/formal representation.
-
-For a small FIFO this may be acceptable. For larger memories, BRAM is normally much more area-efficient on an FPGA.
-
----
-
-# 11. RV32I Memory and BRAM
-
-For an RV32I processor, instruction memory is commonly organized as 32-bit words.
-
-A simple synchronous RAM style is:
-
-```systemverilog
-module instruction_mem #(
-    parameter DEPTH = 4096
-)(
-    input  logic        clk,
-    input  logic [31:0] addr,
-    output logic [31:0] rdata
-);
-
-    logic [31:0] mem [0:DEPTH-1];
-
-    initial begin
-        $readmemh("program.hex", mem);
-    end
-
-    always_ff @(posedge clk) begin
-        rdata <= mem[addr[13:2]];
-    end
-
-endmodule
-```
-
-For FPGA synthesis, this coding style can allow Vivado to infer block RAM depending on the target, dimensions, and synthesis settings.
-
-## Why `addr[13:2]`?
-
-RISC-V instructions are 32 bits = 4 bytes.
-
-For sequential 32-bit instruction addresses:
-
-```text
-0x80000000 -> word 0
-0x80000004 -> word 1
-0x80000008 -> word 2
-0x8000000C -> word 3
-```
-
-Therefore the two least-significant byte-address bits are not used as the word index.
-
-For a memory mapped at `0x80000000`, the local word index can instead be derived conceptually as:
-
-```systemverilog
-(addr - 32'h8000_0000) >> 2
-```
-
-giving:
-
-```text
-0x80000000 -> mem[0]
-0x80000004 -> mem[1]
-0x80000008 -> mem[2]
-...
-```
-
-The same principle applies when designing a data memory.
-
----
 
 # 12. Recommended Workflow
 
