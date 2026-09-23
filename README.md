@@ -16,6 +16,9 @@ This repository contains a SystemVerilog FIFO and a verification/synthesis flow 
 
 ---
 
+## FIFO FINAL SYNTHESISED IMAGE
+![FIFO Netlist](synthesis/fifo_netlist.png)
+
 ## 1. Design
 
 The FIFO is a synchronous, parameterized FIFO with:
@@ -61,6 +64,7 @@ rd_en = 1, empty = 1
 ```
 
 ---
+
 
 # 2. Formal Verification Flow
 
@@ -542,8 +546,9 @@ Yosys can optimize the generic representation, but that does not make it a final
 ---
 
 ```
-#  FIFO SYNTHESISED 
-![FIFO Netlist](synthesis/fifo_netlist.png)
+
+## FIFO SYNTHESISED 
+<img src="synthesis/fifo_netlist.png" width="900">
 
 This is useful for understanding the logic generated from the RTL.
 
